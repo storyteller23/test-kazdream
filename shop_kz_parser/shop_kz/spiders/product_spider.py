@@ -14,7 +14,6 @@ class ProductSpider(scrapy.Spider):
     def parse(self, response):
         for cat_link in response.css('.bx_catalog_tile_title a::attr("href")').getall():
             yield response.follow(cat_link, callback=self.parse_page_or_categories)
-    
 
     def parse_page_or_categories(self, response):
         if response.url in self.category_urls:
@@ -35,7 +34,6 @@ class ProductSpider(scrapy.Spider):
             if next_page:
                 yield response.follow(next_page.get(), callback=self.parse_page_or_categories)
 
-
     def parse_product_data(self, response):
         item = ProductItem()
         item['name'] = response.css('#pagetitle::text').get().strip()
@@ -48,8 +46,7 @@ class ProductSpider(scrapy.Spider):
             url = 'https:' + style_string.replace("background-image:url('", '').replace("');", '')
             url = url.replace('/100_100_1', '').replace('/resize_cache', '')
             photo_urls.append(url)
-        
+
         item['photo_urls'] = photo_urls
 
         yield item
-
