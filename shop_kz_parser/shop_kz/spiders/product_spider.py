@@ -38,7 +38,13 @@ class ProductSpider(scrapy.Spider):
         item = ProductItem()
         item['name'] = response.css('#pagetitle::text').get().strip()
         item['articul'] = response.css('.bx-card-mark li:nth-child(1)::text').get().split()[1]
-        item['price'] = response.css('.item_current_price::text').get().strip().replace(' ₸', '').replace(' ', '')
+
+        price = response.css('.item_current_price::text').get()
+        if price:
+            item['price'] = price.strip().replace(' ₸', '').replace(' ', '')
+        else:
+            item['price'] = ''
+
         item['category'] = response.css('#bx_breadcrumb_1 span::text').get().strip()
         item['description'] = ''.join(response.css('.bx_item_description::text').getall()).replace('\r\n', '').strip()
         photo_urls = []

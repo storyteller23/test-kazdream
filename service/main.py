@@ -1,13 +1,13 @@
 import pika
 import json
 import sqlite3
+import atexit
 
 from config import DB_NAME, RABBITMQ_HOST, RABBITMQ_QUEUE
 
 db_connection = sqlite3.connect(DB_NAME)
 cursor = db_connection.cursor()
-print(RABBITMQ_HOST)
-print('*' * 10)
+
 cursor.execute('''CREATE TABLE IF NOT EXISTS product(
                     articul INT PRIMARY KEY NOT NULL,
                     name TEXT NOT NULL,
@@ -19,6 +19,12 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS product(
 rabbitmq_connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_HOST))
 channel = rabbitmq_connection.channel()
 channel.queue_declare(queue=RABBITMQ_QUEUE, durable=True)
+
+
+@atexit.register
+def close_connections():
+    db_connection.close()
+    rabbitmq_connection.close()
 
 
 def callback(ch, method, properties, body):

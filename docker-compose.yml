@@ -1,41 +1,46 @@
-version: '3'
+version: "3"
 services:
-  rabbitmqServer:
-    container_name: rabbitmqServer
+  rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
       - "15672:15672"
       - "5672:5672"
+
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
 
-  service:
-    container_name: service
+
+  service_consumer:
+    container_name: service_consumer
     build: ./service
-    command: python main.py
+    command: sh -c "sleep 10 && python main.py"
     depends_on:
-      - rabbitmqServer
+      - rabbitmq
+
     environment:
+      RABBITMQ_HOST: rabbitmq
       DB_NAME: db.sqlite
-      RABBITMQ_HOST: rabbitmqServer
       RABBITMQ_QUEUE: item
 
     volumes:
       - ./service:/app
 
+
   parser:
     container_name: parser
     build: ./shop_kz_parser
-    command: scrapy crawl shopkz
+    command: sh -c "sleep 10 && scrapy crawl shopkz"
     depends_on:
-      - rabbitmqServer
+      - rabbitmq
+
     environment:
-      RABBITMQ_HOST: rabbitmqServer
+      RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_VIRTUAL_HOST: /
+      RABBITMQ_VIRTUAL_HOST: "/"
       RABBITMQ_EXCHANGE: scrapy
       RABBITMQ_ROUTING_KEY: item
       RABBITMQ_QUEUE: item
